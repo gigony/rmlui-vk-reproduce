@@ -1,0 +1,58 @@
+[workspace]
+name = "RmlUi Bug Reproduce"
+version = "0.1.0"
+description = "RmlUi Bug Reproduce https://github.com/mikke89/RmlUi/issues/861"
+authors = ["Gigon Bae <gigony@gmail.com>"]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+[system-requirements]
+libc = "2.31" # conda's rmlui requires __glibc >=2.31,<2.32.a0
+cuda = "12.8"
+
+[dependencies]
+python = ">=3.12,<3.13"
+pip = "*"
+uv = ">=0.9.11,<0.10"
+xorg-libx11 = ">=1.8.12,<2.0.0"
+xorg-xorgproto = "2024.1.*"
+libgl-devel = "1.7.0.*"
+glfw = ">=3.4.0,<3.5.0"
+freetype = ">=2.14.1,<3.0.0"
+libvulkan-headers = ">=1.4.328.1,<2.0.0"
+libvulkan-loader = ">=1.4.328.1,<2.0.0"
+vulkan-tools = ">=1.4.328.1,<2.0.0"
+spirv-tools = "2025.4.*"
+
+[feature.build.dependencies]
+sysroot_linux-64 = ">=2.35"
+kernel-headers_linux-64 = "*"
+cmake = "3.31.8.*"
+cxx-compiler = "1.11.0.*"
+make = ">=4.3,<5"
+ninja = "1.11.1.*"
+
+[feature.build-cuda128.dependencies]
+cuda-toolkit = "12.8.*"
+cuda-cudart-dev = "12.8.*"
+
+[feature.cuda128.dependencies]
+cuda-version = "12.8.*"
+
+[tasks.configure-rmlui]
+# cmake -B Build -S . --preset samples -DRMLUI_BACKEND=GLFW_GL3 -DCMAKE_TOOLCHAIN_FILE="<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake"
+cwd = "RmlUi"
+cmd = "mkdir -p build && cmake -B build -S . --preset samples -DRMLUI_BACKEND=GLFW_VK -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+[tasks.build-rmlui]
+depends-on = ["configure-rmlui"]
+cwd = "RmlUi"
+cmd = "cmake --build build"
+
+[tasks.clean]
+cmd = "rm -rf .build .cache"
+
+[environments]
+build-cuda128 = ["build", "build-cuda128","cuda128"]
+build = ["build", "build-cuda128","cuda128"]
+default = ["build", "build-cuda128","cuda128"]
